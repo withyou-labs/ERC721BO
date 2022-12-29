@@ -1,11 +1,18 @@
 {
   "name": "erc721bo",
   "version": "1.0.0",
-  "description": "ERC721BOO",
+  "description": "ERC721BO contract for Solidity",
   "main": "index.js",
   "author": "withyou-labs",
   "license": "MIT",
-  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/withyou-labs/ERC721BO.git"
+  },
+  "bugs": {
+    "url": "https://github.com/withyou-labs/ERC721BO/issues"
+  },
+  "homepage": "https://github.com/withyou-labs/ERC721BO#readme",
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.5",
     "@nomiclabs/hardhat-ethers": "^2.2.1",
