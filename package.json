@@ -5,6 +5,10 @@
   "main": "index.js",
   "author": "withyou-labs",
   "license": "MIT",
+  "files": [
+    "/contracts/**/*.sol",
+    "!/contracts/mocks/**/*"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/withyou-labs/ERC721BO.git"
