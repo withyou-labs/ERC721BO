@@ -1,7 +1,7 @@
 import {expect} from "chai";
 import dotenv from "dotenv";
 import {ethers} from "hardhat";
-import {ERC721BOMock, ERC721ReceiverMock} from "../typechain-types";
+import {AccessControlMock, ERC721BOMock, ERC721ReceiverMock} from "../typechain-types";
 import {SignerWithAddress as Signer} from "@nomiclabs/hardhat-ethers/signers";
 import {ContractTransaction} from "ethers";
 const { constants, makeInterfaceId } = require('@openzeppelin/test-helpers/index');
@@ -89,11 +89,20 @@ describe("ERC721", async () => {
             ERC2981: [
                 'royaltyInfo(uint256,uint256)',
             ],
+            AccessControl: [
+                'hasRole(bytes32,address)',
+                'getRoleAdmin(bytes32)',
+                'grantRole(bytes32,address)',
+                'revokeRole(bytes32,address)',
+                'renounceRole(bytes32,address)',
+            ],
+
         };
 
         const INTERFACE_IDS: any = {};
         const FN_SIGNATURES: any = {};
         let contractUnderTest: any = {};
+        let inheritedToken: AccessControlMock;
 
         for (const k of Object.getOwnPropertyNames(INTERFACES)) {
             INTERFACE_IDS[k] = makeInterfaceId.ERC165(INTERFACES[k]);
@@ -103,14 +112,16 @@ describe("ERC721", async () => {
             }
         }
 
-        beforeEach(() => {
+        beforeEach(async () => {
             contractUnderTest = token;
+	    inheritedToken = await (await ethers.getContractFactory("AccessControlMock")).deploy() as AccessControlMock;
         });
 
         for (const k of ["ERC165", "ERC721", "ERC721Enumerable", "ERC721Metadata", /*"ERC2981"*/]) {
             const interfaceId = INTERFACE_IDS[k];
             describe(k, () => {
                 describe('ERC165\'s supportsInterface(bytes4)', () => {
+		    //ERC721BO
                     it('uses less than 30k gas', async () => {
                         const gas = await contractUnderTest.estimateGas.supportsInterface(interfaceId);
                         expect(gas.toNumber()).be.lte(30000);
@@ -118,6 +129,16 @@ describe("ERC721", async () => {
 
                     it('claims support', async () => {
                         expect(await contractUnderTest.supportsInterface(interfaceId)).equal(true);
+                    });
+
+		    //Inherited
+		    it('uses less than 30k gas', async () => {
+                        const gas = await inheritedToken.estimateGas.supportsInterface(interfaceId);
+                        expect(gas.toNumber()).be.lte(30000);
+                    });
+
+                    it('claims support', async () => {
+                        expect(await inheritedToken.supportsInterface(interfaceId)).equal(true);
                     });
                 });
 
@@ -131,11 +152,33 @@ describe("ERC721", async () => {
 
                                 return ethers.utils.Interface.getSighash(fn) === fnSig;
                             }).length).equal(1);
+
+                            expect(inheritedToken.interface.fragments.filter((fn: any) => {
+                                if (fn.name === null)
+                                    return false;
+
+                                return ethers.utils.Interface.getSighash(fn) === fnSig;
+                            }).length).equal(1);
+
                         });
                     });
                 }
             });
         }
+
+        //AccessControl
+        describe('AccessControl', () => {
+            const interfaceId = makeInterfaceId.ERC165(INTERFACES["AccessControl"]);
+            it('uses less than 30k gas', async () => {
+                const gas = await inheritedToken.estimateGas.supportsInterface(interfaceId);
+                expect(gas.toNumber()).be.lte(30000);
+            });
+
+            it('claims support', async () => {
+                expect(await inheritedToken.supportsInterface(interfaceId)).equal(true);
+            });
+        });
+
     });
 
     context('with minted tokens', () => {

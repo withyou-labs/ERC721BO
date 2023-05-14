@@ -4,13 +4,14 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "./IERC721BO.sol";
 import "./Bits.sol";
 import "./Assets.sol";
 import "./Owners.sol";
 import "./Counter.sol";
 
-abstract contract ERC721BO is Context, IERC721BO {
+abstract contract ERC721BO is Context, ERC165, IERC721BO {
     using Address for address;
     using Strings for uint256;
     using Bits for uint256;
@@ -73,7 +74,7 @@ abstract contract ERC721BO is Context, IERC721BO {
      * https://eips.ethereum.org/EIPS/eip-165 to learn more about how these ids are created.
      * This function call must use less than 30 000 gas.
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
         return
         interfaceId == type(IERC165).interfaceId ||
         interfaceId == type(IERC721).interfaceId ||
